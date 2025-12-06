@@ -2,14 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import "./Node.css";
 
 export default function Block({
-  children,
+  id,
   initialX = 100,
   initialY = 100,
   color = "#4a90e2",
   onPositionChange,
-  start = false,
-  end = false,
+  onConnect,
+  onDataChange,
+  hasInput = true,
+  hasOutput = true,
   type = "block",
+  children,
 }) {
   const [pos, setPos] = useState({ x: initialX, y: initialY });
   const [dragging, setDragging] = useState(false);
@@ -49,6 +52,123 @@ export default function Block({
     };
   }, [dragging, offset, onPositionChange]);
 
+  const renderOutputPorts = () => {
+    if (type === "if") {
+      return (
+        <>
+          {/* True branch */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onConnect(id, true, "true");
+            }}
+            style={{
+              position: "absolute",
+              bottom: -10,
+              left: "25%",
+              transform: "translateX(-50%)",
+              width: 20,
+              height: 20,
+              background: "#2ecc71",
+              borderRadius: "50%",
+              cursor: "pointer",
+              border: "2px solid white",
+            }}
+            title="True"
+          />
+          {/* False branch */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onConnect(id, true, "false");
+            }}
+            style={{
+              position: "absolute",
+              bottom: -10,
+              left: "75%",
+              transform: "translateX(-50%)",
+              width: 20,
+              height: 20,
+              background: "#e74c3c",
+              borderRadius: "50%",
+              cursor: "pointer",
+              border: "2px solid white",
+            }}
+            title="False"
+          />
+        </>
+      );
+    } else if (type === "loop") {
+      return (
+        <>
+          {/* Loop body */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onConnect(id, true, "body");
+            }}
+            style={{
+              position: "absolute",
+              bottom: -10,
+              left: "25%",
+              transform: "translateX(-50%)",
+              width: 20,
+              height: 20,
+              background: "#9b59b6",
+              borderRadius: "50%",
+              cursor: "pointer",
+              border: "2px solid white",
+            }}
+            title="Loop Body"
+          />
+          {/* Exit loop */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onConnect(id, true, "exit");
+            }}
+            style={{
+              position: "absolute",
+              bottom: -10,
+              left: "75%",
+              transform: "translateX(-50%)",
+              width: 20,
+              height: 20,
+              background: "#f39c12",
+              borderRadius: "50%",
+              cursor: "pointer",
+              border: "2px solid white",
+            }}
+            title="Exit Loop"
+          />
+        </>
+      );
+    } else if (hasOutput) {
+      // Regular single output
+      return (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onConnect(id, true);
+          }}
+          style={{
+            position: "absolute",
+            bottom: -10,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 20,
+            height: 20,
+            background: "white",
+            borderRadius: "50%",
+            cursor: "pointer",
+            border: "2px solid #333",
+          }}
+        />
+      );
+    }
+    return null;
+  };
+
   return (
     <div
       ref={blockRef}
@@ -67,7 +187,7 @@ export default function Block({
         zIndex: 1,
       }}
     >
-      {!start && (
+      {hasInput && (
         <div
           onClick={(e) => {
             e.stopPropagation();
@@ -77,19 +197,12 @@ export default function Block({
           title="Input"
         />
       )}
+
       <div>{type.toUpperCase()}</div>
 
       {children}
-      {!end && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            onConnect(id, true);
-          }}
-          className="endPoint"
-          title="Output"
-        />
-      )}
+
+      {renderOutputPorts()}
     </div>
   );
 }

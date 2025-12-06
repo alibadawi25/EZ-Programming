@@ -23,6 +23,10 @@ class ProgramExecutor {
       case "print":
         this.executePrint(node, nodeData);
         break;
+      case "if":
+        return this.executeIf(node, nodeData);
+      case "loop":
+        return this.executeLoop(node, nodeData);
       case "end":
         this.executeEnd(node, nodeData);
         break;
@@ -41,16 +45,12 @@ class ProgramExecutor {
     const { name, value } = nodeData;
 
     if (!name) {
-      console.error("Variable name is required");
       return;
     }
 
     // Try to parse value as number, otherwise store as string
     const parsedValue = isNaN(value) ? value : Number(value);
     this.variables[name] = parsedValue;
-
-    // console.log(`Variable set: ${name} = ${parsedValue}`);
-    // this.output.push(`${name} = ${parsedValue}`);
   }
 
   executeInput(node, nodeData) {
@@ -58,7 +58,6 @@ class ProgramExecutor {
     const { variableName } = nodeData;
 
     if (!variableName) {
-      console.error("Variable name is required for input");
       return;
     }
 
@@ -68,8 +67,6 @@ class ProgramExecutor {
     const parsedValue = isNaN(userInput) ? userInput : Number(userInput);
 
     this.variables[variableName] = parsedValue;
-    // console.log(`Input received: ${variableName} = ${parsedValue}`);
-    // this.output.push(`Input: ${variableName} = ${parsedValue}`);
   }
 
   executePrint(node, nodeData) {
@@ -77,7 +74,6 @@ class ProgramExecutor {
     const { inputType, value } = nodeData;
 
     if (!value) {
-      console.error("Print value is required");
       return;
     }
 
@@ -88,7 +84,6 @@ class ProgramExecutor {
       if (this.variables.hasOwnProperty(value)) {
         outputValue = this.variables[value];
       } else {
-        console.error(`Variable '${value}' not found`);
         outputValue = `[undefined: ${value}]`;
       }
     } else {
@@ -105,26 +100,149 @@ class ProgramExecutor {
     // this.output.push("=== Program End ===");
   }
 
+  executeIf(node, nodeData) {
+    const { left, operator, right } = nodeData;
+
+    if (!left || !operator || !right) {
+      return false;
+    }
+
+    const leftValue = this.resolveValue(left);
+    const rightValue = this.resolveValue(right);
+    const result = this.evaluateCondition(leftValue, operator, rightValue);
+
+    return result;
+  }
+
+  executeLoop(node, nodeData) {
+    const { type, count, condition } = nodeData;
+
+    if (type === "count") {
+      const iterations = parseInt(this.resolveValue(count)) || 0;
+      return { type: "count", iterations };
+    } else {
+      return { type: "while", condition };
+    }
+  }
+
+  resolveValue(value) {
+    if (!value) return "";
+
+    // Check if it's a variable name
+    if (this.variables.hasOwnProperty(value)) {
+      return this.variables[value];
+    }
+
+    // Try to parse as number
+    const num = Number(value);
+    if (!isNaN(num)) {
+      return num;
+    }
+
+    // Return as string
+    return value;
+  }
+
+  evaluateCondition(left, operator, right) {
+    switch (operator) {
+      case "==":
+        return left == right;
+      case "!=":
+        return left != right;
+      case ">":
+        return parseFloat(left) > parseFloat(right);
+      case "<":
+        return parseFloat(left) < parseFloat(right);
+      case ">=":
+        return parseFloat(left) >= parseFloat(right);
+      case "<=":
+        return parseFloat(left) <= parseFloat(right);
+      default:
+        return false;
+    }
+  }
+
   // Execute entire program given nodes in order
-  executeProgram(orderedNodes, nodesData) {
+  executeProgram(orderedNodes, nodesData, connections) {
     this.variables = {};
     this.output = [];
 
-    console.log("=== Starting Execution ===");
+    // Build a connection map for easier lookup
+    this.connections = connections;
+    this.nodes = orderedNodes;
+    this.nodesData = nodesData;
 
-    orderedNodes.forEach((node) => {
-      const nodeData = nodesData[node.id] || {};
-      this.executeNode(node, nodeData);
-    });
-
-    console.log("=== Execution Complete ===");
-    console.log("Final variables:", this.variables);
-    console.log("Output:", this.output);
+    // Find the start node
+    const startNode = orderedNodes.find((n) => n.type === "start");
+    if (startNode) {
+      this.executeFromNode(startNode.id);
+    }
 
     return {
       variables: this.variables,
       output: this.output,
     };
+  }
+
+  // Execute starting from a specific node
+  executeFromNode(nodeId, visited = new Set()) {
+    if (visited.has(nodeId)) return; // Prevent infinite loops in graph
+    visited.add(nodeId);
+
+    const node = this.nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+
+    const nodeData = this.nodesData[node.id] || {};
+
+    // Execute the node
+    const result = this.executeNode(node, nodeData);
+
+    // Find outgoing connections
+    const outgoing = this.connections.filter((c) => c.from === nodeId);
+
+    if (node.type === "if") {
+      // Follow true or false branch based on result
+      const branch = result ? "true" : "false";
+      const nextConn = outgoing.find((c) => c.branch === branch);
+      if (nextConn) {
+        this.executeFromNode(nextConn.to, new Set(visited));
+      }
+    } else if (node.type === "loop") {
+      const bodyConn = outgoing.find((c) => c.branch === "body");
+      const exitConn = outgoing.find((c) => c.branch === "exit");
+
+      if (result.type === "count") {
+        // Execute body N times
+        for (let i = 0; i < result.iterations; i++) {
+          if (bodyConn) {
+            this.executeFromNode(bodyConn.to, new Set());
+          }
+        }
+        // After loop, follow exit
+        if (exitConn) {
+          this.executeFromNode(exitConn.to, new Set(visited));
+        }
+      } else if (result.type === "while") {
+        // Execute while condition is true
+        let iterations = 0;
+        const maxIterations = 1000; // Safety limit
+        while (this.variables[result.condition] && iterations < maxIterations) {
+          if (bodyConn) {
+            this.executeFromNode(bodyConn.to, new Set());
+          }
+          iterations++;
+        }
+        // After loop, follow exit
+        if (exitConn) {
+          this.executeFromNode(exitConn.to, new Set(visited));
+        }
+      }
+    } else {
+      // Regular node - follow all outgoing connections
+      outgoing.forEach((conn) => {
+        this.executeFromNode(conn.to, new Set(visited));
+      });
+    }
   }
 
   // Get current state

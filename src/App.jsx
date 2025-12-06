@@ -10,7 +10,9 @@ function App() {
     { id: 1, x: 200, y: 200, type: "print", width: 200, height: 100 },
     { id: 2, x: 200, y: 400, type: "input", width: 200, height: 100 },
     { id: 3, x: 200, y: 600, type: "variable", width: 200, height: 100 },
-    { id: 4, x: 500, y: 700, type: "end", width: 200, height: 100 },
+    { id: 4, x: 500, y: 300, type: "if", width: 200, height: 100 },
+    { id: 5, x: 500, y: 500, type: "loop", width: 200, height: 100 },
+    { id: 6, x: 800, y: 700, type: "end", width: 200, height: 100 },
   ]);
 
   const [connections, setConnections] = useState([]);
@@ -19,14 +21,17 @@ function App() {
   const canvasRef = useRef(null);
   const executorRef = useRef(new ProgramExecutor());
 
-  const handleConnect = (nodeId, isOutput) => {
+  const handleConnect = (nodeId, isOutput, branch = null) => {
     if (connecting === null && isOutput) {
       // Start connection from output
-      setConnecting({ from: nodeId });
+      setConnecting({ from: nodeId, branch });
     } else if (connecting !== null && !isOutput) {
       // Complete connection to input
       if (connecting.from !== nodeId) {
-        setConnections([...connections, { from: connecting.from, to: nodeId }]);
+        setConnections([
+          ...connections,
+          { from: connecting.from, to: nodeId, branch: connecting.branch },
+        ]);
       }
       setConnecting(null);
     }
@@ -44,8 +49,6 @@ function App() {
   };
 
   const runCode = () => {
-    console.log("=== Running Code ===");
-
     // Build execution order using topological sort
     const visited = new Set();
     const order = [];
@@ -71,10 +74,7 @@ function App() {
 
     // Execute using the executor
     executorRef.current.reset();
-    const result = executorRef.current.executeProgram(orderedNodes, nodeData);
-
-    console.log("=== Execution Complete ===");
-    console.log("Result:", result);
+    executorRef.current.executeProgram(orderedNodes, nodeData, connections);
   };
 
   const updateNodePosition = (id, x, y, width, height) => {
@@ -114,19 +114,33 @@ function App() {
             const toNode = nodes.find((n) => n.id === conn.to);
             if (!fromNode || !toNode) return null;
 
-            // Calculate center positions
-            const x1 = fromNode.x + (fromNode.width || 200) / 2;
+            // Calculate positions based on branch type
+            let x1 = fromNode.x + (fromNode.width || 200) / 2;
             const y1 = fromNode.y + (fromNode.height || 100);
             const x2 = toNode.x + (toNode.width || 200) / 2;
             const y2 = toNode.y;
+
+            // Adjust x1 for branched connections
+            if (conn.branch === "true" || conn.branch === "body") {
+              x1 = fromNode.x + (fromNode.width || 200) * 0.25;
+            } else if (conn.branch === "false" || conn.branch === "exit") {
+              x1 = fromNode.x + (fromNode.width || 200) * 0.75;
+            }
+
+            // Color based on branch
+            let strokeColor = "#666";
+            if (conn.branch === "true") strokeColor = "#2ecc71";
+            else if (conn.branch === "false") strokeColor = "#e74c3c";
+            else if (conn.branch === "body") strokeColor = "#9b59b6";
+            else if (conn.branch === "exit") strokeColor = "#f39c12";
 
             return (
               <g key={idx}>
                 {/* Invisible wider path for easier clicking */}
                 <path
-                  d={`M ${x1} ${y1} C ${x1} ${
-                    y1 + 50
-                  }, ${x2} ${y2}, ${x2} ${y2}`}
+                  d={`M ${x1} ${y1} C ${x1} ${y1 + 50}, ${x2} ${
+                    y2 - 50
+                  }, ${x2} ${y2}`}
                   stroke="transparent"
                   strokeWidth="20"
                   fill="none"
@@ -135,15 +149,28 @@ function App() {
                 />
                 {/* Visible path */}
                 <path
-                  d={`M ${x1} ${y1} C ${x1} ${
-                    y1 + 50
-                  }, ${x2} ${y2}, ${x2} ${y2}`}
-                  stroke="#666"
+                  d={`M ${x1} ${y1} C ${x1} ${y1 + 50}, ${x2} ${
+                    y2 - 50
+                  }, ${x2} ${y2}`}
+                  stroke={strokeColor}
                   strokeWidth="2"
                   fill="none"
                   markerEnd="url(#arrowhead)"
                   style={{ pointerEvents: "none" }}
                 />
+                {/* Branch label */}
+                {conn.branch && (
+                  <text
+                    x={x1 + 10}
+                    y={y1 + 20}
+                    fill={strokeColor}
+                    fontSize="12"
+                    fontWeight="bold"
+                    style={{ pointerEvents: "none" }}
+                  >
+                    {conn.branch}
+                  </text>
+                )}
               </g>
             );
           })}
