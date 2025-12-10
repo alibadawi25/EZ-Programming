@@ -24,4 +24,62 @@
   transform: translateX(-50%);
   cursor: pointer;
   z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.startPoint:hover {
+  width: 18px;
+  height: 18px;
+  top: -8.5px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Ant Design Input styling inside blocks */
+div[style*="position: absolute"] .ant-input,
+div[style*="position: absolute"] .ant-select {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+}
+
+div[style*="position: absolute"] .ant-input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+div[style*="position: absolute"] .ant-input-focused {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) !important;
+}
+
+div[style*="position: absolute"] .ant-select-selector {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 4px !important;
+}
+
+div[style*="position: absolute"] .ant-select-selector .ant-select-selection-item {
+  color: white !important;
+}
+
+div[style*="position: absolute"] .ant-select-selector .ant-select-selection-placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+div[style*="position: absolute"] .ant-select-dropdown {
+  background-color: #141414 !important;
+}
+
+div[style*="position: absolute"] .ant-select-item {
+  color: white !important;
+}
+
+div[style*="position: absolute"] .ant-select-item-option:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+div[style*="position: absolute"] .ant-select-item-option-selected {
+  background-color: rgba(255, 255, 255, 0.2) !important;
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Block from "./Block";
 import "./Node.css";
+import { Input, Select } from "antd";
 
 // Node content components - these define what's inside each node type
 const NodeContent = {
@@ -9,24 +10,25 @@ const NodeContent = {
   end: () => null,
 
   print: ({ id, onDataChange }) => {
-    const [inputType, setInputType] = useState("string");
+    const [inputType, setInputType] = useState("expression");
     const [printValue, setPrintValue] = useState("");
 
     return (
-      <div>
-        <select
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <Select
           value={inputType}
-          onChange={(e) => {
-            setInputType(e.target.value);
-            onDataChange(id, { inputType: e.target.value, value: printValue });
+          onChange={(value) => {
+            setInputType(value);
+            onDataChange(id, { inputType: value, value: printValue });
           }}
-        >
-          <option value="string">String</option>
-          <option value="variable">Variable</option>
-        </select>
-        <br />
-        <input
-          type="text"
+          options={[
+            { label: "String", value: "string" },
+            { label: "Expression", value: "expression" },
+          ]}
+          size="small"
+          style={{ width: "100%" }}
+        />
+        <Input
           value={printValue}
           onChange={(e) => {
             setPrintValue(e.target.value);
@@ -34,10 +36,16 @@ const NodeContent = {
           }}
           placeholder={
             inputType === "string"
-              ? "Enter text to print"
-              : "Enter variable name"
+              ? "Enter text to print (no evaluation)"
+              : "e.g., x, x * 2, x + y"
           }
+          size="small"
         />
+        {inputType === "expression" && (
+          <div style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.5)" }}>
+            Supports: variables, math operations
+          </div>
+        )}
       </div>
     );
   },
@@ -46,14 +54,14 @@ const NodeContent = {
     const [inputVariable, setInputVariable] = useState("");
 
     return (
-      <input
-        type="text"
+      <Input
         value={inputVariable}
         onChange={(e) => {
           setInputVariable(e.target.value);
           onDataChange(id, { variableName: e.target.value });
         }}
         placeholder="Enter variable name to store input"
+        size="small"
       />
     );
   },
@@ -63,27 +71,33 @@ const NodeContent = {
     const [variableValue, setVariableValue] = useState("");
 
     return (
-      <>
-        <input
-          type="text"
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <Input
           value={variableName}
           onChange={(e) => {
             setVariableName(e.target.value);
             onDataChange(id, { name: e.target.value, value: variableValue });
           }}
           placeholder="Variable Name"
+          size="small"
         />
-        {" = "}
-        <input
-          type="text"
-          value={variableValue}
-          onChange={(e) => {
-            setVariableValue(e.target.value);
-            onDataChange(id, { name: variableName, value: e.target.value });
-          }}
-          placeholder="Initial Value"
-        />
-      </>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <span style={{ color: "white", fontSize: "12px" }}>=</span>
+          <Input
+            value={variableValue}
+            onChange={(e) => {
+              setVariableValue(e.target.value);
+              onDataChange(id, { name: variableName, value: e.target.value });
+            }}
+            placeholder="Number or Text"
+            size="small"
+            style={{ flex: 1 }}
+          />
+        </div>
+        <div style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.5)" }}>
+          Numbers or text (strings)
+        </div>
+      </div>
     );
   },
   loop: ({ id, onDataChange }) => {
@@ -92,41 +106,44 @@ const NodeContent = {
     const [whileCondition, setWhileCondition] = useState("");
 
     return (
-      <div>
-        <select
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <Select
           value={loopType}
-          onChange={(e) => {
-            setLoopType(e.target.value);
+          onChange={(value) => {
+            setLoopType(value);
             onDataChange(id, {
-              type: e.target.value,
+              type: value,
               count: countValue,
               condition: whileCondition,
             });
           }}
-        >
-          <option value="count">Repeat N times</option>
-          <option value="while">While condition</option>
-        </select>
-        <br />
+          options={[
+            { label: "Repeat N times", value: "count" },
+            { label: "While condition", value: "while" },
+          ]}
+          size="small"
+          style={{ width: "100%" }}
+        />
         {loopType === "count" ? (
-          <input
-            type="text"
+          <Input
+            type="number"
             value={countValue}
             onChange={(e) => {
               setCountValue(e.target.value);
               onDataChange(id, { type: loopType, count: e.target.value });
             }}
             placeholder="Number of times"
+            size="small"
           />
         ) : (
-          <input
-            type="text"
+          <Input
             value={whileCondition}
             onChange={(e) => {
               setWhileCondition(e.target.value);
               onDataChange(id, { type: loopType, condition: e.target.value });
             }}
             placeholder="Variable name"
+            size="small"
           />
         )}
       </div>
@@ -138,53 +155,58 @@ const NodeContent = {
     const [rightValue, setRightValue] = useState("");
 
     return (
-      <div>
-        <input
-          type="text"
-          value={leftValue}
-          onChange={(e) => {
-            setLeftValue(e.target.value);
-            onDataChange(id, {
-              left: e.target.value,
-              operator,
-              right: rightValue,
-            });
-          }}
-          placeholder="Variable or value"
-          style={{ width: "60px" }}
-        />
-        <select
-          value={operator}
-          onChange={(e) => {
-            setOperator(e.target.value);
-            onDataChange(id, {
-              left: leftValue,
-              operator: e.target.value,
-              right: rightValue,
-            });
-          }}
-        >
-          <option value="==">==</option>
-          <option value="!=">!=</option>
-          <option value=">">&gt;</option>
-          <option value="<">&lt;</option>
-          <option value=">=">&gt;=</option>
-          <option value="<=">&lt;=</option>
-        </select>
-        <input
-          type="text"
-          value={rightValue}
-          onChange={(e) => {
-            setRightValue(e.target.value);
-            onDataChange(id, {
-              left: leftValue,
-              operator,
-              right: e.target.value,
-            });
-          }}
-          placeholder="Variable or value"
-          style={{ width: "60px" }}
-        />
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+          <Input
+            value={leftValue}
+            onChange={(e) => {
+              setLeftValue(e.target.value);
+              onDataChange(id, {
+                left: e.target.value,
+                operator,
+                right: rightValue,
+              });
+            }}
+            placeholder="Var/Val"
+            size="small"
+            style={{ flex: 1, maxWidth: "60px" }}
+          />
+          <Select
+            value={operator}
+            onChange={(value) => {
+              setOperator(value);
+              onDataChange(id, {
+                left: leftValue,
+                operator: value,
+                right: rightValue,
+              });
+            }}
+            options={[
+              { label: "==", value: "==" },
+              { label: "!=", value: "!=" },
+              { label: ">", value: ">" },
+              { label: "<", value: "<" },
+              { label: ">=", value: ">=" },
+              { label: "<=", value: "<=" },
+            ]}
+            size="small"
+            style={{ flex: 1, maxWidth: "55px" }}
+          />
+          <Input
+            value={rightValue}
+            onChange={(e) => {
+              setRightValue(e.target.value);
+              onDataChange(id, {
+                left: leftValue,
+                operator,
+                right: e.target.value,
+              });
+            }}
+            placeholder="Var/Val"
+            size="small"
+            style={{ flex: 1, maxWidth: "60px" }}
+          />
+        </div>
       </div>
     );
   },

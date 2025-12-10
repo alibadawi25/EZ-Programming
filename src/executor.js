@@ -69,25 +69,58 @@ class ProgramExecutor {
     this.variables[variableName] = parsedValue;
   }
 
+
+  // TODO: Make sure to fix case ahmed = "hard" and "ahmed" + "gamed"
   executePrint(node, nodeData) {
-    // nodeData should contain: { inputType: 'string' | 'variable', value: string }
+    // nodeData should contain: { inputType: 'string' | 'expression', value: string }
     const { inputType, value } = nodeData;
 
-    if (!value) {
+    if (value === undefined || value === null || value === "") {
       return;
     }
 
     let outputValue;
 
-    if (inputType === "variable") {
-      // Look up variable value
-      if (this.variables.hasOwnProperty(value)) {
-        outputValue = this.variables[value];
-      } else {
-        outputValue = `[undefined: ${value}]`;
+    if (inputType === "string") {
+      // Print as literal string without any evaluation
+      outputValue = value;
+    } else if (inputType === "expression") {
+      // Evaluate as an expression
+      try {
+        // Create a safe scope with available variables
+        const scope = { ...this.variables };
+        
+        // Create a function that evaluates the expression in the given scope
+        const evaluateExpression = (expr, variables) => {
+          // Replace variable names with their values
+          let evalExpr = expr;
+          
+          // Sort variables by length (longest first) to avoid partial replacements
+          const sortedVars = Object.keys(variables).sort((a, b) => b.length - a.length);
+          
+          for (const varName of sortedVars) {
+            // Only replace whole word matches
+            const regex = new RegExp(`\\b${varName}\\b`, 'g');
+            let replacement = variables[varName];
+            
+            // If the value is a string, wrap it in quotes for proper evaluation
+            if (typeof replacement === 'string') {
+              replacement = `"${replacement}"`;
+            }
+            
+            evalExpr = evalExpr.replace(regex, replacement);
+          }
+          
+          // Evaluate the expression
+          return eval(evalExpr);
+        };
+        
+        outputValue = evaluateExpression(value, scope);
+      } catch (e) {
+        // If evaluation fails, treat as literal string
+        outputValue = value;
       }
     } else {
-      // Print as string literal
       outputValue = value;
     }
 
@@ -135,7 +168,7 @@ class ProgramExecutor {
 
     // Try to parse as number
     const num = Number(value);
-    if (!isNaN(num)) {
+    if (!isNaN(num) && value.trim() !== "") {
       return num;
     }
 
@@ -214,8 +247,11 @@ class ProgramExecutor {
       if (result.type === "count") {
         // Execute body N times
         for (let i = 0; i < result.iterations; i++) {
-          if (bodyConn) {
-            this.executeFromNode(bodyConn.to, new Set());
+          var next = bodyConn.to;
+
+          while (next != null) {
+            this.executeFromNode(next, new Set());
+            next = outgoing.find((c) => c.from === next)?.to;
           }
         }
         // After loop, follow exit

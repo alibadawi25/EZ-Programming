@@ -30,9 +30,36 @@ export default function Block({
   useEffect(() => {
     const handleMove = (e) => {
       if (!dragging) return;
+      let newX = e.clientX - offset.x;
+      let newY = e.clientY - offset.y;
+
+      // Get the Content container (parent of the canvas)
+      const contentContainer = blockRef.current?.closest('.ant-layout-content');
+      
+      if (contentContainer) {
+        const containerRect = contentContainer.getBoundingClientRect();
+        const blockRect = blockRef.current?.getBoundingClientRect();
+        
+        // Get relative position to container
+        const relX = newX;
+        const relY = newY;
+        const blockWidth = blockRect?.width || 200;
+        const blockHeight = blockRect?.height || 100;
+        
+        // Constrain to container bounds
+        // Left boundary: 0
+        newX = Math.max(0, newX);
+        // Right boundary: container width - block width
+        newX = Math.min(newX, containerRect.width - blockWidth);
+        // Top boundary: 0
+        newY = Math.max(0, newY);
+        // Bottom boundary: container height - block height
+        newY = Math.min(newY, containerRect.height - blockHeight);
+      }
+
       const newPos = {
-        x: e.clientX - offset.x,
-        y: e.clientY - offset.y,
+        x: newX,
+        y: newY,
       };
       setPos(newPos);
       if (onPositionChange && blockRef.current) {
@@ -73,8 +100,17 @@ export default function Block({
               borderRadius: "50%",
               cursor: "pointer",
               border: "2px solid white",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+              transition: "all 0.2s ease",
             }}
-            title="True"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%) scale(1.2)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.5)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
+            }}
           />
           {/* False branch */}
           <div
@@ -93,8 +129,17 @@ export default function Block({
               borderRadius: "50%",
               cursor: "pointer",
               border: "2px solid white",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+              transition: "all 0.2s ease",
             }}
-            title="False"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%) scale(1.2)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.5)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
+            }}
           />
         </>
       );
@@ -118,8 +163,17 @@ export default function Block({
               borderRadius: "50%",
               cursor: "pointer",
               border: "2px solid white",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+              transition: "all 0.2s ease",
             }}
-            title="Loop Body"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%) scale(1.2)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.5)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
+            }}
           />
           {/* Exit loop */}
           <div
@@ -138,8 +192,17 @@ export default function Block({
               borderRadius: "50%",
               cursor: "pointer",
               border: "2px solid white",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+              transition: "all 0.2s ease",
             }}
-            title="Exit Loop"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%) scale(1.2)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.5)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateX(-50%)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
+            }}
           />
         </>
       );
@@ -162,6 +225,16 @@ export default function Block({
             borderRadius: "50%",
             cursor: "pointer",
             border: "2px solid #333",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateX(-50%) scale(1.2)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.5)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateX(-50%)";
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
           }}
         />
       );
@@ -177,14 +250,17 @@ export default function Block({
         position: "absolute",
         left: pos.x,
         top: pos.y,
-        padding: 20,
+        padding: "16px",
         background: color,
-        borderRadius: 10,
+        borderRadius: "8px",
         color: "white",
         cursor: "grab",
         userSelect: "none",
         fontWeight: 600,
         zIndex: 1,
+        pointerEvents: "auto",
+        boxShadow: "0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32), 0 9px 28px 8px rgba(0, 0, 0, 0.20)",
+        minWidth: "180px",
       }}
     >
       {hasInput && (
@@ -198,9 +274,15 @@ export default function Block({
         />
       )}
 
-      <div>{type.toUpperCase()}</div>
+      <div style={{ fontSize: "12px", fontWeight: "700", letterSpacing: "0.5px", marginBottom: "12px" }}>
+        {type.toUpperCase()}
+      </div>
 
-      {children}
+      {children && (
+        <div style={{ fontSize: "12px" }}>
+          {children}
+        </div>
+      )}
 
       {renderOutputPorts()}
     </div>
