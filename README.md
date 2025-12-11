@@ -2,7 +2,7 @@
 
 A visual programming interface that allows users to create programs by dragging and connecting nodes on a canvas. Built with React, Vite, and Ant Design for an intuitive and powerful programming experience.
 
-![EZ-Programming Interface](screenshot.png)
+![EZ-Programming Interface](src/assets/image.png)
 
 ## Features
 
