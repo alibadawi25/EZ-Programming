@@ -9,9 +9,9 @@ const NodeContent = {
 
   end: () => null,
 
-  print: ({ id, onDataChange }) => {
-    const [inputType, setInputType] = useState("expression");
-    const [printValue, setPrintValue] = useState("");
+  print: ({ id, nodeData, onDataChange }) => {
+    const [inputType, setInputType] = useState(nodeData?.inputType || "string");
+    const [printValue, setPrintValue] = useState(nodeData?.value || "");
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -50,8 +50,10 @@ const NodeContent = {
     );
   },
 
-  input: ({ id, onDataChange }) => {
-    const [inputVariable, setInputVariable] = useState("");
+  input: ({ id, nodeData, onDataChange }) => {
+    const [inputVariable, setInputVariable] = useState(
+      nodeData?.variableName || ""
+    );
 
     return (
       <Input
@@ -66,9 +68,9 @@ const NodeContent = {
     );
   },
 
-  variable: ({ id, onDataChange }) => {
-    const [variableName, setVariableName] = useState("");
-    const [variableValue, setVariableValue] = useState("");
+  variable: ({ id, nodeData, onDataChange }) => {
+    const [variableName, setVariableName] = useState(nodeData?.name || "");
+    const [variableValue, setVariableValue] = useState(nodeData?.value || "");
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -100,10 +102,12 @@ const NodeContent = {
       </div>
     );
   },
-  loop: ({ id, onDataChange }) => {
-    const [loopType, setLoopType] = useState("count");
-    const [countValue, setCountValue] = useState("");
-    const [whileCondition, setWhileCondition] = useState("");
+  loop: ({ id, nodeData, onDataChange }) => {
+    const [loopType, setLoopType] = useState(nodeData?.type || "count");
+    const [countValue, setCountValue] = useState(nodeData?.count || "");
+    const [whileCondition, setWhileCondition] = useState(
+      nodeData?.condition || ""
+    );
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -149,10 +153,10 @@ const NodeContent = {
       </div>
     );
   },
-  if: ({ id, onDataChange }) => {
-    const [leftValue, setLeftValue] = useState("");
-    const [operator, setOperator] = useState("==");
-    const [rightValue, setRightValue] = useState("");
+  if: ({ id, nodeData, onDataChange }) => {
+    const [leftValue, setLeftValue] = useState(nodeData?.left || "");
+    const [operator, setOperator] = useState(nodeData?.operator || "==");
+    const [rightValue, setRightValue] = useState(nodeData?.right || "");
 
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -256,6 +260,7 @@ export default function Node({
   x,
   y,
   type,
+  nodeData,
   onConnect,
   onPositionChange,
   onDataChange,
@@ -286,7 +291,11 @@ export default function Node({
       onDataChange={onDataChange}
     >
       {ContentComponent && (
-        <ContentComponent id={id} onDataChange={onDataChange} />
+        <ContentComponent
+          id={id}
+          nodeData={nodeData}
+          onDataChange={onDataChange}
+        />
       )}
     </Block>
   );

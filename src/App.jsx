@@ -31,10 +31,51 @@ const NODE_COLORS = {
 const NODE_TYPES = ["start", "print", "input", "variable", "if", "loop", "end"];
 
 function App() {
-  const [nodes, setNodes] = useState([]);
-  const [connections, setConnections] = useState([]);
+  const [nodes, setNodes] = useState([
+    {
+      id: 1,
+      x: 58.20001220703125,
+      y: 69.40001678466797,
+      type: "start",
+      width: 180,
+      height: 62,
+    },
+    {
+      id: 2,
+      x: 37.999969482421875,
+      y: 176.60003662109375,
+      type: "print",
+      width: 220.40000915527344,
+      height: 140.1999969482422,
+    },
+    {
+      id: 3,
+      x: 58.600006103515625,
+      y: 359.59991455078125,
+      type: "end",
+      width: 180,
+      height: 62,
+    },
+  ]);
+  const [connections, setConnections] = useState([
+    {
+      from: 1,
+      to: 2,
+      branch: null,
+    },
+    {
+      from: 2,
+      to: 3,
+      branch: null,
+    },
+  ]);
   const [connecting, setConnecting] = useState(null);
-  const [nodeData, setNodeData] = useState({});
+  const [nodeData, setNodeData] = useState({
+    2: {
+      inputType: "string",
+      value: "Hello World",
+    },
+  });
   const [canvasTransform, setCanvasTransform] = useState({
     scale: 1,
     x: 0,
@@ -587,6 +628,7 @@ function App() {
                 x={node.x}
                 y={node.y}
                 type={node.type}
+                nodeData={nodeData[node.id]}
                 onConnect={handleConnect}
                 onPositionChange={updateNodePosition}
                 onDataChange={updateNodeData}

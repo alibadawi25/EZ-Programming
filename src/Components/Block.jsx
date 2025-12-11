@@ -34,18 +34,18 @@ export default function Block({
       let newY = e.clientY - offset.y;
 
       // Get the Content container (parent of the canvas)
-      const contentContainer = blockRef.current?.closest('.ant-layout-content');
-      
+      const contentContainer = blockRef.current?.closest(".ant-layout-content");
+
       if (contentContainer) {
         const containerRect = contentContainer.getBoundingClientRect();
         const blockRect = blockRef.current?.getBoundingClientRect();
-        
+
         // Get relative position to container
         const relX = newX;
         const relY = newY;
         const blockWidth = blockRect?.width || 200;
         const blockHeight = blockRect?.height || 100;
-        
+
         // Constrain to container bounds
         // Left boundary: 0
         newX = Math.max(0, newX);
@@ -259,7 +259,8 @@ export default function Block({
         fontWeight: 600,
         zIndex: 1,
         pointerEvents: "auto",
-        boxShadow: "0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32), 0 9px 28px 8px rgba(0, 0, 0, 0.20)",
+        boxShadow:
+          "0 3px 6px -4px rgba(0, 0, 0, 0.48), 0 6px 16px 0 rgba(0, 0, 0, 0.32), 0 9px 28px 8px rgba(0, 0, 0, 0.20)",
         minWidth: "180px",
       }}
     >
@@ -274,15 +275,18 @@ export default function Block({
         />
       )}
 
-      <div style={{ fontSize: "12px", fontWeight: "700", letterSpacing: "0.5px", marginBottom: "12px" }}>
+      <div
+        style={{
+          fontSize: "12px",
+          fontWeight: "700",
+          letterSpacing: "0.5px",
+          marginBottom: "12px",
+        }}
+      >
         {type.toUpperCase()}
       </div>
 
-      {children && (
-        <div style={{ fontSize: "12px" }}>
-          {children}
-        </div>
-      )}
+      {children && <div style={{ fontSize: "12px" }}>{children}</div>}
 
       {renderOutputPorts()}
     </div>
