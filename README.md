@@ -155,6 +155,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Collaborative editing features
 - [ ] Plugin system for custom node types
 
+## Authors
+
+- **Ali Badawi - alibadawi25**
+- **Youssef Tamer - waryoyo**
+- **Hamed A. Elgizery - HamedElgizery**
+- **Ahmed Hisham - jvgcgch**
+- **Youssef Ahmed**
+
 ---
 
 Made with ❤️ for visual programming enthusiasts
