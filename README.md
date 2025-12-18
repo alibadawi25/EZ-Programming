@@ -70,7 +70,7 @@ A visual programming interface that allows users to create programs by dragging 
 #### Basic Nodes
 
 - **Start**: Marks the beginning of your program. Generates `# Program Start` comment in Python.
-- **Print**: Outputs text or variable values to the terminal. 
+- **Print**: Outputs text or variable values to the terminal.
   - **String mode**: Wraps text in quotes: `print("text")`
   - **Expression mode**: Evaluates variables and expressions: `print(variable + 5)`
 - **Input**: Prompts for user input with custom messages: `variable = input("Enter value: ")`
@@ -104,6 +104,7 @@ A visual programming interface that allows users to create programs by dragging 
 ### Python Code Generation
 
 The Python code is automatically generated as you build your program:
+
 - Proper indentation for nested blocks (if/else, loops)
 - Automatic string quoting in conditions and variables
 - Clean, readable Python syntax
@@ -165,21 +166,27 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Technologies Used
 
-- **React**: UI framework for building the interface
+- **React**: UI framework for building the interface with hooks (useState, useRef, useEffect)
 - **Vite**: Fast build tool and development server
-- **Ant Design**: UI component library
+- **Ant Design**: UI component library for buttons, layout, and inputs
+- **Tailwind CSS**: Utility-first CSS framework for responsive styling
 - **SVG**: For rendering connection arrows and canvas elements
-- **JavaScript ES6+**: Modern JavaScript features
+- **JavaScript ES6+**: Modern JavaScript features including classes and arrow functions
 
 ## Future Enhancements
 
 - [ ] Function nodes for reusable code blocks
 - [ ] Array and object data types
-- [ ] Advanced loop constructs
+- [ ] Advanced loop constructs (for-each, do-while)
 - [ ] Error handling and debugging tools
-- [ ] Export to traditional programming languages
+- [ ] Export to additional languages (JavaScript, Java, C++)
+- [ ] Syntax highlighting in Python code viewer
+- [ ] Copy to clipboard for generated code
 - [ ] Collaborative editing features
 - [ ] Plugin system for custom node types
+- [ ] Undo/redo functionality
+- [ ] Multi-line input support
+- [ ] Variable inspector/debugger
 
 ## Authors
 
