@@ -69,7 +69,6 @@ class ProgramExecutor {
     this.variables[variableName] = parsedValue;
   }
 
-
   // TODO: Make sure to fix case ahmed = "hard" and "ahmed" + "gamed"
   executePrint(node, nodeData) {
     // nodeData should contain: { inputType: 'string' | 'expression', value: string }
@@ -89,32 +88,34 @@ class ProgramExecutor {
       try {
         // Create a safe scope with available variables
         const scope = { ...this.variables };
-        
+
         // Create a function that evaluates the expression in the given scope
         const evaluateExpression = (expr, variables) => {
           // Replace variable names with their values
           let evalExpr = expr;
-          
+
           // Sort variables by length (longest first) to avoid partial replacements
-          const sortedVars = Object.keys(variables).sort((a, b) => b.length - a.length);
-          
+          const sortedVars = Object.keys(variables).sort(
+            (a, b) => b.length - a.length
+          );
+
           for (const varName of sortedVars) {
             // Only replace whole word matches
-            const regex = new RegExp(`\\b${varName}\\b`, 'g');
+            const regex = new RegExp(`\\b${varName}\\b`, "g");
             let replacement = variables[varName];
-            
+
             // If the value is a string, wrap it in quotes for proper evaluation
-            if (typeof replacement === 'string') {
+            if (typeof replacement === "string") {
               replacement = `"${replacement}"`;
             }
-            
+
             evalExpr = evalExpr.replace(regex, replacement);
           }
-          
+
           // Evaluate the expression
           return eval(evalExpr);
         };
-        
+
         outputValue = evaluateExpression(value, scope);
       } catch (e) {
         // If evaluation fails, treat as literal string

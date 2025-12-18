@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 
 import Node from "./Components/Node";
 import ProgramExecutor from "./executor";
+import ProgramTranslator from "./translator";
 import "./App.css";
 import {
   MenuFoldOutlined,
@@ -13,6 +14,8 @@ import {
   ZoomInOutlined,
   ZoomOutOutlined,
   ClearOutlined,
+  RightOutlined,
+  LeftOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, theme, Dropdown, Input } from "antd";
 const { Header, Sider, Content } = Layout;
@@ -90,9 +93,14 @@ function App() {
   const [terminalOutput, setTerminalOutput] = useState([]);
   const [terminalMinimized, setTerminalMinimized] = useState(false);
   const [projectName, setProjectName] = useState("EZ-Programming");
+  const [rightCollapsed, setRightCollapsed] = useState(false);
+  const [pythonCode, setPythonCode] = useState(
+    "# Python code will appear here"
+  );
   const canvasRef = useRef(null);
   const contentRef = useRef(null);
   const executorRef = useRef(new ProgramExecutor());
+  const translatorRef = useRef(new ProgramTranslator());
 
   const addNode = (type) => {
     const newId = Math.max(0, ...nodes.map((n) => n.id), -1) + 1;
@@ -156,6 +164,10 @@ function App() {
     setSelectedNodeId(nodeId);
     setContextMenu({ visible: true, x: e.clientX, y: e.clientY });
   };
+  // Add this useEffect after the translatorRef declaration
+  useEffect(() => {
+    translateCode();
+  }, [nodes, connections, nodeData]);
 
   // Keyboard shortcut for delete
   useEffect(() => {
@@ -176,6 +188,45 @@ function App() {
       window.removeEventListener("click", handleClickOutside);
     };
   }, [selectedNodeId]);
+
+  const translateCode = () => {
+    // Build execution order using topological sort
+    const visited = new Set();
+    const order = [];
+
+    const visit = (nodeId) => {
+      if (visited.has(nodeId)) return;
+      visited.add(nodeId);
+
+      // Visit all nodes that this node depends on first
+      const incomingConnections = connections.filter((c) => c.to === nodeId);
+      incomingConnections.forEach((conn) => visit(conn.from));
+
+      order.push(nodeId);
+    };
+
+    // Start from nodes with no incoming connections
+    nodes.forEach((node) => visit(node.id));
+
+    // Get ordered nodes
+    const orderedNodes = order.map((nodeId) =>
+      nodes.find((n) => n.id === nodeId)
+    );
+
+    // Generate Python code
+    translatorRef.current.reset();
+    const pythonCode = translatorRef.current.translateProgram(
+      orderedNodes,
+      nodeData,
+      connections
+    );
+
+    // Print to console and update state
+    console.log("=== Generated Python Code ===");
+    console.log(pythonCode);
+    console.log("=============================");
+    setPythonCode(pythonCode);
+  };
 
   const runCode = () => {
     // Clear previous output
@@ -476,6 +527,36 @@ function App() {
             Load
           </Button>
         </div>
+        <Button
+          type="primary"
+          shape="circle"
+          icon={rightCollapsed ? <LeftOutlined /> : <RightOutlined />}
+          onClick={() => setRightCollapsed(!rightCollapsed)}
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: "0px",
+            zIndex: 10,
+            transform: "translateY(-50%)",
+            width: "32px",
+            height: "32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            // backgroundColor: "rgb(10, 14, 39)",
+            border: "none",
+            borderRadius: "32px 0 0 32px",
+            outline: "none",
+            boxShadow: "none",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.border = "none";
+            e.currentTarget.style.outline = "none";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+          title={rightCollapsed ? "Show Python Code" : "Hide Python Code"}
+        />
         {contextMenu.visible && selectedNodeId !== null && (
           <div
             style={{
@@ -713,6 +794,50 @@ function App() {
           )}
         </div>
       </Content>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={rightCollapsed}
+        collapsedWidth={0}
+        reverseArrow
+        width={400}
+        style={{
+          background: "#141414",
+          borderLeft: "1px solid #434343",
+          overflow: "auto",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            padding: "16px",
+            color: "white",
+            fontWeight: "bold",
+            borderBottom: "1px solid #434343",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>Python Code</span>
+        </div>
+        <pre
+          style={{
+            padding: "16px",
+            margin: 0,
+            color: "#00ff00",
+            backgroundColor: "#000a15",
+            fontFamily: "'Courier New', monospace",
+            fontSize: "13px",
+            lineHeight: "1.5",
+            whiteSpace: "pre-wrap",
+            wordWrap: "break-word",
+            minHeight: "calc(100vh - 64px)",
+          }}
+        >
+          {pythonCode}
+        </pre>
+      </Sider>
     </Layout>
   );
 }
