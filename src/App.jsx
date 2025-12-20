@@ -276,6 +276,16 @@ function App() {
     setTerminalOutput(output.length > 0 ? output : ["Program executed"]);
   };
 
+  const exportPython = () => {
+    const blob = new Blob([pythonCode], { type: "text/plain;charset=utf-8" });
+    const downloadAnchorNode = document.createElement("a");
+    downloadAnchorNode.setAttribute("href", URL.createObjectURL(blob));
+    downloadAnchorNode.setAttribute("download", `${projectName}.py`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
   const handleSave = () => {
     const saveData = {
       nodes,
@@ -820,6 +830,7 @@ function App() {
           }}
         >
           <span>Python Code</span>
+          <Button onClick={exportPython}>Export</Button>
         </div>
         <pre
           style={{
